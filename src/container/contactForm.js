@@ -1,12 +1,17 @@
 import React, { Component } from 'react'
 import { reduxForm, Field } from 'redux-form'
+import { CONTACT_FORM } from '../FormName'
 import { StyleSheet, View, Text, TextInput, TouchableOpacity } from 'react-native'
+import RemoteSubmitButton from './RemoteSubmitButton'
+import { getFormValues } from 'redux-form';
+import { connect } from 'react-redux';
 
 //validate
 const required = value => value ? undefined : 'Required';
 const maxLength = value => value && value.length > 15 ? 'Must be 15 character or less' : undefined;
 const isValidEmail = value => value && !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-z]{2,4}$/i.test(value) ? 'Invalid email address' : undefined;
-const number = value => value && isNaN(Number(value)) ? undefined:'UseNAme Must be string';
+const number = value => value && isNaN(Number(value)) ? undefined : 'UseNAme Must be string';
+
 const renderField = ({ label, keyboardType, meta: { touched, error }, input: { onChange, ...restInput } }) => {
     return (
         <View>
@@ -19,13 +24,15 @@ const renderField = ({ label, keyboardType, meta: { touched, error }, input: { o
             </View>
             {touched && ((error && <Text style={{ color: 'red' }}>{error}</Text>))}
         </View>
-    );
+    ); 
 }
 const submit = values => {
     alert('Validation:=' + JSON.stringify(values))
+    console.warn(values)
 }
+
+
 const ContactComponent = (props) => {
-    const { handleSubmit } = props
     return (
         <View style={{ flex: 1, flexDirection: 'column', margin: 40, justifyContent: 'flex-start' }}>
             <Text style={{ fontSize: 18, fontWeight: 'bold', width: 200, textAlign: 'center', margin: 18 }}>Redux Form Example</Text>
@@ -33,19 +40,24 @@ const ContactComponent = (props) => {
                 validate={[required, maxLength, number]} />
             <Field keyboardType="email-address" component={renderField} name="email" label='Email'
                 validate={isValidEmail} />
-            <TouchableOpacity style={{ margin: 10, alignItems: 'center' }} onPress={handleSubmit(submit)}>
-                <Text style={{ backgroundColor: 'steelblue', color: 'white', height: 40, width: 100, textAlign: 'center' }}>
-                    submit
-            </Text>
-
-            </TouchableOpacity>
+            <RemoteSubmitButton />
         </View>
     )
 }
 
+function mapStateToProps(state) {
+    return {
+        formStates: getFormValues('form')(state) // here 'form' is the name you have given your redux form 
+    }
+}
+
+const connectComp = connect(mapStateToProps)(ContactComponent)
+
 const ContactForm = reduxForm({
-    form: 'contact',
-})(ContactComponent)
+    form: CONTACT_FORM,
+    onSubmit: submit
+
+})(connectComp)
 
 
 export default ContactForm 
